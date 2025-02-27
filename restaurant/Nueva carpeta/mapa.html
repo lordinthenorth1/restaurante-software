@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Street Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <style>
+    #mi_mapa{
+       height:400px;
+       width: 600px;
+    }
+</style>
+</head>
+<body>
+
+<div id="mi_mapa"></div>
+
+
+   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>  
+<script>
+let map = L.map('mi_mapa'). setView ([6.24415,-75.57495], 12)
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+L.marker([6.17938, -75.442241]).addTo(map).bindPopup("Aeropuerto (Rionegro) - Horario: 24 horas");
+    L.marker([6.17545757, -75.59133576]).addTo(map).bindPopup("Viva Envigado (Envigado) - Horario: 8:00 am a 9:00 pm");
+    L.marker([6.21194987, -75.57404774]).addTo(map).bindPopup("Éxito Poblado (Medellín) - Horario: 8:00 am a 8:00 pm");
+    L.marker([6.237474, -75.57521]).addTo(map).bindPopup("Exposiciones (Medellín) - Horario: 24 horas");
+    L.marker([6.17900319, -75.58839136]).addTo(map).bindPopup("EDS Texaco Vegas (Envigado) - Horario: 24 horas");
+    L.marker([6.2456493, -75.5932793]).addTo(map).bindPopup("1er Parque Laureles (Medellín) - Horario: 24 horas");
+    L.marker([6.23199997, -75.60442682]).addTo(map).bindPopup("CC Los Molinos (Medellín) - Horario: 8:00 am a 9:00 pm");
+    L.marker([6.160704, -75.604596]).addTo(map).bindPopup("CC Mayorca (Sabaneta) - Horario: 8:00 am a 9:00 pm");
+    L.marker([6.19929518, -75.57225902]).addTo(map).bindPopup("Milla de Oro (Medellín) - Horario: 7:00 am a 8:00 pm");
+    L.marker([6.24805414, -75.59813799]).addTo(map).bindPopup("EDS Consolata - Nutibara (Medellín) - Horario: 24 horas");
+    L.marker([6.24262272, -75.57617529]).addTo(map).bindPopup("Plaza Mayor (Medellín) - Horario: 7:00 am a 7:00 pm");
+    L.marker([6.34033635, -75.54240445]).addTo(map).bindPopup("CC Puerta del Norte (Bello) - Horario: 8:00 am a 9:00 pm");
+    L.marker([6.160296, -75.605496]).addTo(map).bindPopup("EDS Santa María - Sabaneta (Sabaneta) - Horario: 8:00 am a 9:00 pm");
+  </script>
+</script>
+
+</body>
+</html>

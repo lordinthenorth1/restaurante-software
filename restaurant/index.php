@@ -1,52 +1,72 @@
 <?php 
 include("admin/bd.php");
+session_start(); // Iniciar sesión para evitar reenvíos
 
-// Obtener todos los banners para el carrusel y corregir rutas de imagen
+// Obtener todos los banners
 $sentencia=$conexion->prepare("SELECT * FROM tbl_banners ORDER BY ID DESC");
 $sentencia->execute();
 $lista_banners= $sentencia->fetchAll(PDO::FETCH_ASSOC);
 
-// Ajustar las rutas de las imágenes para asegurarnos de que son accesibles
+// Ajustar rutas de imágenes
 foreach ($lista_banners as &$banner) {
     if (!empty($banner['image_url']) && file_exists("images/" . basename($banner['image_url']))) {
         $banner['image_url'] = "images/" . basename($banner['image_url']);
     } else {
-        $banner['image_url'] = "images/default-banner.jpg"; // Imagen por defecto en caso de error
+        $banner['image_url'] = "images/default-banner.jpg";
     }
 }
-unset($banner); // Evitar referencias accidentales en el foreach
+unset($banner);
 
-// Obtener los colaboradores sin límite de resultados
-$sentencia=$conexion->prepare("SELECT * FROM tbl_colaboradores ORDER BY id DESC");
-$sentencia->execute();
-$lista_colaboradores= $sentencia->fetchAll(PDO::FETCH_ASSOC);
+// Obtener otros datos
+$lista_colaboradores = $conexion->query("SELECT * FROM tbl_colaboradores ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+$lista_testimonios = $conexion->query("SELECT * FROM tbl_testimonios ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+$lista_menu = $conexion->query("SELECT * FROM tbl_menu ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
 
-// Obtener los testimonios sin límite de resultados
-$sentencia=$conexion->prepare("SELECT * FROM tbl_testimonios ORDER BY id DESC");
-$sentencia->execute();
-$lista_testimonios= $sentencia->fetchAll(PDO::FETCH_ASSOC);
+$mensaje_enviado = false;
 
-// Obtener el menú sin límite de resultados
-$sentencia=$conexion->prepare("SELECT * FROM tbl_menu ORDER BY id DESC");
-$sentencia->execute();
-$lista_menu= $sentencia->fetchAll(PDO::FETCH_ASSOC);
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["enviar"])) {
+    // Evitar reenvíos con sesión
+    if (!isset($_SESSION['form_enviado'])) {
+        $nombre = filter_var($_POST["nombre"], FILTER_SANITIZE_STRING);
+        $correo = filter_var($_POST["correo"], FILTER_VALIDATE_EMAIL);
+        $mensaje = filter_var($_POST["mensaje"], FILTER_SANITIZE_STRING);
 
-if($_POST){
-   $nombre=filter_var($_POST["nombre"], FILTER_SANITIZE_STRING);
-   $correo=filter_var($_POST["correo"],FILTER_VALIDATE_EMAIL);
-   $mensaje=filter_var($_POST["mensaje"],FILTER_SANITIZE_STRING);
+        if ($nombre && $correo && $mensaje) {
+            // Verificar si el mensaje ya existe en la base de datos
+            $verificar = $conexion->prepare("SELECT COUNT(*) FROM tbl_comentarios WHERE nombre = :nombre AND correo = :correo AND mensaje = :mensaje");
+            $verificar->bindParam(":nombre", $nombre);
+            $verificar->bindParam(":correo", $correo);
+            $verificar->bindParam(":mensaje", $mensaje);
+            $verificar->execute();
+            $existe = $verificar->fetchColumn();
 
-   if($nombre && $correo && $mensaje) {
-       $sql="INSERT INTO tbl_comentarios (nombre, correo, mensaje) VALUES (:nombre, :correo,:mensaje)";
-       $resultado = $conexion->prepare($sql);
-       $resultado->bindParam(':nombre', $nombre, PDO::PARAM_STR);
-       $resultado->bindParam(':correo', $correo, PDO::PARAM_STR);
-       $resultado->bindParam(':mensaje', $mensaje, PDO::PARAM_STR);
-       $resultado->execute();
-   }
-   header("Location:index.php");
+            if ($existe == 0) { // Solo insertar si no existe el mensaje
+                $sql = "INSERT INTO tbl_comentarios (nombre, correo, mensaje) VALUES (:nombre, :correo, :mensaje)";
+                $resultado = $conexion->prepare($sql);
+                $resultado->bindParam(':nombre', $nombre);
+                $resultado->bindParam(':correo', $correo);
+                $resultado->bindParam(':mensaje', $mensaje);
+                $resultado->execute();
+
+                $mensaje_enviado = true;
+                $_SESSION['form_enviado'] = true; // Evita reenvío con F5
+            }
+        }
+    }
+}
+
+// Evitar que el formulario se envíe de nuevo con F5
+if ($mensaje_enviado) {
+    header("Location: index.php?success=1");
+    exit();
+}
+
+// Limpiar la sesión después de redirección
+if (isset($_GET['success'])) {
+    unset($_SESSION['form_enviado']);
 }
 ?>
+
 
 <!doctype html>
 
@@ -795,36 +815,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['enviar']) && !$mensaje_
     </form>
   </div>
 </section>
-
-<!-- Modal de confirmación -->
-<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="successModalLabel">✅ Mensaje Enviado</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body text-center">
-        <p>¡Tu mensaje ha sido enviado con éxito! Nos pondremos en contacto pronto. 📩</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Mostrar modal si el mensaje fue enviado -->
-<?php if($mensaje_enviado): ?>
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    var myModal = new bootstrap.Modal(document.getElementById("successModal"));
-    myModal.show();
-    document.getElementById("contactForm").reset();
-  });
-</script>
-<?php endif; ?>
-
 <!-- Estilos optimizados -->
 <style>
 .contacto-container {
@@ -1022,6 +1012,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['enviar']) && !$mensaje_
 
 <!-- Swiper.js JS -->
 <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
+
 
 
 </body>

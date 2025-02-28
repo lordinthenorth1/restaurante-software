@@ -68,7 +68,6 @@ include ("../../templates/header.php");
                         </td>
                         <td><?php echo $value['button_text']; ?></td>
                         <td>
-                            <a class="btn btn-sm btn-info text-white" href="editar.php?txtID=<?php echo $value['ID']; ?>" role="button">✏️ Editar</a>
                             <a class="btn btn-sm btn-danger" href="index.php?txtID=<?php echo $value['ID']; ?>" role="button">🗑️ Borrar</a>
                         </td>
                     </tr>
